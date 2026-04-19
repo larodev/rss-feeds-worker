@@ -6,19 +6,22 @@ import worker from '../src/index';
 // `Request` to pass to `worker.fetch()`.
 const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
 
-describe('Hello World worker', () => {
-	it('responds with Hello World! (unit style)', async () => {
+describe('Default HTML page', () => {
+	it('returns HTML with links (unit style)', async () => {
 		const request = new IncomingRequest('http://example.com');
-		// Create an empty context to pass to `worker.fetch()`.
 		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
+		const response = await worker.fetch(request, env);
 		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+		expect(response.headers.get('content-type')).toContain('text/html');
+		const body = await response.text();
+		expect(body).toContain('/btc-usd.json');
+		expect(body).toContain('/aemet/mapa-isobaras.xml');
 	});
 
-	it('responds with Hello World! (integration style)', async () => {
+	it('returns HTML with links (integration style)', async () => {
 		const response = await SELF.fetch('https://example.com');
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+		expect(response.headers.get('content-type')).toContain('text/html');
+		const body = await response.text();
+		expect(body).toContain('<h1>Available Feeds');
 	});
 });
